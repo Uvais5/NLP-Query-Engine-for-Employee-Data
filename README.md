@@ -58,3 +58,14 @@ This project is ideal for:
 ```bash
 git clone <repository_url>
 cd project/backend
+```
+### 2.Set up a Virtual Environment and Install Dependencies
+```bash
+python3 -m venv venv
+source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+pip install -r requirements.txt
+```
+### 3. Running the Application
+```
+python app.py
+```
