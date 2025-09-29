@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NLP Query Engine - Production Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .badge {
+            font-size: 0.7em;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: #667eea;
+            color: white;
+            font-weight: normal;
+        }
+        
+        /* Drag and Drop Zone */
+        .drop-zone {
+            border: 3px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9ff;
+            margin-bottom: 20px;
+        }
+        
+        .drop-zone:hover, .drop-zone.drag-over {
+            background: #eef0ff;
+            border-color: #5568d3;
+        }
+        
+        .drop-zone-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        
+        .drop-zone-text {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .drop-zone-hint {
+            color: #999;
+            font-size: 0.9em;
+        }
+        
+        /* Progress Bars */
+        .progress-container {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .progress-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .progress-bar-bg {
+            background: #e0e0e0;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-bar-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            transition: width 0.3s;
+        }
+        
+        /* Query Input */
+        .query-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+        
+        .query-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        /* Query History Dropdown */
+        .history-dropdown {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        .history-button {
+            width: 100%;
+            padding: 12px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .history-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .history-menu.show {
+            display: block;
+        }
+        
+        .history-item {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .history-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .history-item-query {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .history-item-meta {
+            font-size: 0.85em;
+            color: #999;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        /* Metrics Dashboard */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+        }
+        
+        .metric-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        
+        .metric-unit {
+            font-size: 0.6em;
+            opacity: 0.8;
+        }
+        
+        /* Performance Display */
+        .performance-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+        
+        .perf-time {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .perf-cache-hit {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .perf-cache-miss {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* Results Display */
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .export-btn {
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+        .export-btn:hover {
+            background: #e9ecef;
+        }
+        
+        /* Database Results Table */
+        .db-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .db-table th {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .db-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .db-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .db-table tr:hover {
+            background: #eef0ff;
+        }
+        
+        /* Document Cards */
+        .document-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+        
+        .document-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateX(5px);
+        }
+        
+        .doc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .doc-title {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .doc-score {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+        }
+        
+        .doc-content {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        
+        .doc-content mark {
+            background: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        .doc-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85em;
+            color: #999;
+        }
+        
+        /* Schema Visualization */
+        .schema-tree {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .table-node {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .table-name {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+        
+        .table-badge {
+            font-size: 0.8em;
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: #eef0ff;
+            color: #667eea;
+        }
+        
+        .column-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 8px;
+        }
+        
+        .column-item {
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .column-icon {
+            font-size: 0.8em;
+        }
+        
+        /* Alerts */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .alert.show {
+            display: block;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .page-btn {
+            padding: 8px 16px;
+            border: 1px solid #dee2e6;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .page-btn:hover, .page-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 NLP Query Engine</h1>
+            <p>Production-Ready Demo with Dynamic Schema Discovery & Document Processing</p>
+        </div>
+        
+        <div class="main-grid">
+            <!-- Left Column: Main Features -->
+            <div>
+                <!-- Database Connection -->
+                <div class="section">
+                    <h2 class="section-title">
+                        Database Connector
+                        <span class="badge" id="db-status-badge">Disconnected</span>
+                    </h2>
+                    
+                    <div id="db-alert" class="alert"></div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label>Connection String:</label>
+                        <input 
+                            type="text" 
+                            id="connection-string" 
+                            class="query-input"
+                            placeholder="mysql+pymysql://root:@localhost:3306/company_db_v1"
+                            value="mysql+pymysql://root:@localhost:3306/company_db_v1"
+                            style="margin-bottom: 0;"
+                        />
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-primary" onclick="testConnection()">
+                            <span id="test-btn-icon">🔌</span> Test Connection
+                        </button>
+                        <button class="btn btn-primary" onclick="connectAndDiscover()">
+                            <span id="connect-btn-icon">⚡</span> Connect & Discover
+                        </button>
+                    </div>
+                    
+                    <!-- Schema Visualization -->
+                    <div id="schema-display" style="display: none; margin-top: 20px;">
+                        <h3>Discovered Schema:</h3>
+                        <div class="schema-tree" id="schema-content"></div>
+                    </div>
+                </div>
+                
+                <!-- Document Upload with Progress -->
+                <div class="section">
+                    <h2 class="section-title">
+                        Document Upload
+                        <span class="badge" id="doc-count-badge">0 Documents</span>
+                    </h2>
+                    
+                    <div class="drop-zone" id="drop-zone">
+                        <div class="drop-zone-icon">📁</div>
+                        <div class="drop-zone-text">Drag & Drop files here</div>
+                        <div class="drop-zone-hint">or click to browse (PDF, DOCX, TXT, CSV)</div>
+                        <input type="file" id="file-input" multiple accept=".pdf,.docx,.txt,.csv" style="display: none;">
+                    </div>
+                    
+                    <div class="progress-container" id="progress-container"></div>
+                </div>
+                
+                <!-- Query Interface -->
+                <div class="section">
+                    <h2 class="section-title">Query Interface</h2>
+                    
+                    <!-- Query History Dropdown -->
+                    <div class="history-dropdown">
+                        <button class="history-button" onclick="toggleHistory()">
+                            <span>📜 Query History</span>
+                            <span id="history-arrow">▼</span>
+                        </button>
+                        <div class="history-menu" id="history-menu"></div>
+                    </div>
+                    
+                    <textarea 
+                        id="query-input" 
+                        class="query-input"
+                        placeholder="Enter your natural language query... (e.g., 'Show top 5 highest paid employees')"
+                        rows="4"
+                    ></textarea>
+                    
+                    <button class="btn btn-primary" onclick="runQuery()">
+                        <span id="query-btn-icon">🔍</span>
+                        <span id="query-btn-text">Run Query</span>
+                    </button>
+                    
+                    <div id="query-alert" class="alert"></div>
+                </div>
+                
+                <!-- Results -->
+                <div class="section" id="results-section" style="display: none;">
+                    <div class="results-header">
+                        <h2 class="section-title" style="margin: 0;">Results</h2>
+                        <div class="export-buttons">
+                            <button class="export-btn" onclick="exportResults('csv')">📊 Export CSV</button>
+                            <button class="export-btn" onclick="exportResults('json')">📋 Export JSON</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Performance Metrics -->
+                    <div id="performance-display" style="margin-bottom: 20px;"></div>
+                    
+                    <!-- Results Content -->
+                    <div id="results-content"></div>
+                    
+                    <!-- Pagination -->
+                    <div class="pagination" id="pagination" style="display: none;"></div>
+                </div>
+            </div>
+            
+            <!-- Right Column: Metrics Dashboard -->
+            <div>
+                <div class="section">
+                    <h2 class="section-title">📊 Metrics Dashboard</h2>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-label">Total Queries</div>
+                            <div class="metric-value">
+                                <span id="metric-total-queries">0</span>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <div class="metric-label">Cache Hit Rate</div>
+                            <div class="metric-value">
+                                <span id="metric-cache-rate">0</span>
+                                <span class="metric-unit">%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <div class="metric-label">Avg Response Time</div>
+                            <div class="metric-value">
+                                <span id="metric-avg-time">0</span>
+                                <span class="metric-unit">ms</span>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <div class="metric-label">Documents Indexed</div>
+                            <div class="metric-value">
+                                <span id="metric-doc-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h3 style="margin-top: 20px; margin-bottom: 15px;">Recent Activity</h3>
+                    <div id="recent-activity" style="max-height: 300px; overflow-y: auto;">
+                        <div style="color: #999; text-align: center; padding: 20px;">
+                            No queries yet
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Global state
+        let currentResults = null;
+        let currentPage = 1;
+        let pageSize = 10;
+        let queryHistory = [];
+        let uploadProgress = {};
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupDragAndDrop();
+            loadQueryHistory();
+            updateMetricsDashboard();
+        });
+        
+        // Drag and Drop Setup
+        function setupDragAndDrop() {
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('file-input');
+            
+            dropZone.onclick = () => fileInput.click();
+            
+            dropZone.ondragover = (e) => {
+                e.preventDefault();
+                dropZone.classList.add('drag-over');
+            };
+            
+            dropZone.ondragleave = () => {
+                dropZone.classList.remove('drag-over');
+            };
+            
+            dropZone.ondrop = (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                const files = e.dataTransfer.files;
+                handleFiles(files);
+            };
+            
+            fileInput.onchange = (e) => {
+                handleFiles(e.target.files);
+            };
+        }
+        
+        // File Upload with Progress
+        function handleFiles(files) {
+            const progressContainer = document.getElementById('progress-container');
+            progressContainer.innerHTML = '';
+            
+            Array.from(files).forEach((file, index) => {
+                const progressId = `progress-${index}`;
+                uploadProgress[progressId] = 0;
+                
+                const progressHtml = `
+                    <div class="progress-item" id="${progressId}">
+                        <div class="progress-header">
+                            <span>${file.name}</span>
+                            <span id="${progressId}-status">Uploading...</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="${progressId}-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                `;
+                progressContainer.insertAdjacentHTML('beforeend', progressHtml);
+                
+                uploadFile(file, progressId);
+            });
+        }
+        
+        function uploadFile(file, progressId) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const xhr = new XMLHttpRequest();
+            
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    const percent = (e.loaded / e.total) * 100;
+                    document.getElementById(`${progressId}-bar`).style.width = percent + '%';
+                    document.getElementById(`${progressId}-status`).textContent = `${Math.round(percent)}%`;
+                }
+            };
+            
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.status === 'success') {
+                        document.getElementById(`${progressId}-status`).textContent = '✓ Complete';
+                        document.getElementById(`${progressId}-bar`).style.width = '100%';
+                        document.getElementById(progressId).style.background = '#d4edda';
+                        updateDocumentCount();
+                    } else {
+                        document.getElementById(`${progressId}-status`).textContent = '✗ Failed';
+                        document.getElementById(progressId).style.background = '#f8d7da';
+                    }
+                } else {
+                    document.getElementById(`${progressId}-status`).textContent = '✗ Error';
+                    document.getElementById(progressId).style.background = '#f8d7da';
+                }
+            };
+            
+            xhr.onerror = () => {
+                document.getElementById(`${progressId}-status`).textContent = '✗ Error';
+                document.getElementById(progressId).style.background = '#f8d7da';
+            };
+            
+            xhr.open('POST', '/api/upload-documents');
+            xhr.send(formData);
+        }
+        
+        function updateDocumentCount() {
+            // This would fetch actual count from backend
+            const badge = document.getElementById('doc-count-badge');
+            const currentCount = parseInt(badge.textContent) || 0;
+            badge.textContent = `${currentCount + 1} Documents`;
+        }
+        
+        // Database Connection
+        function showAlert(elementId, message, type) {
+            const alert = document.getElementById(elementId);
+            alert.textContent = message;
+            alert.className = `alert alert-${type} show`;
+            setTimeout(() => alert.classList.remove('show'), 5000);
+        }
+        
+        function testConnection() {
+            const connectionString = document.getElementById('connection-string').value;
+            if (!connectionString) {
+                showAlert('db-alert', 'Please enter a connection string', 'error');
+                return;
+            }
+            
+            document.getElementById('test-btn-icon').innerHTML = '<span class="spinner"></span>';
+            showAlert('db-alert', 'Testing connection...', 'info');
+            
+            fetch('/api/test-connection', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ connection_string: connectionString })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('test-btn-icon').textContent = '🔌';
+                if (data.ok) {
+                    showAlert('db-alert', `✓ Connection successful! Found ${data.info.table_count} tables`, 'success');
+                } else {
+                    showAlert('db-alert', `✗ ${data.message}`, 'error');
+                }
+            })
+            .catch(error => {
+                document.getElementById('test-btn-icon').textContent = '🔌';
+                showAlert('db-alert', `✗ Error: ${error.message}`, 'error');
+            });
+        }
+        
+        function connectAndDiscover() {
+            const connectionString = document.getElementById('connection-string').value;
+            if (!connectionString) {
+                showAlert('db-alert', 'Please enter a connection string', 'error');
+                return;
+            }
+            
+            document.getElementById('connect-btn-icon').innerHTML = '<span class="spinner"></span>';
+            showAlert('db-alert', 'Discovering schema...', 'info');
+            
+            fetch('/api/connect-database', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ connection_string: connectionString })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('connect-btn-icon').textContent = '⚡';
+                if (data.ok) {
+                    showAlert('db-alert', `✓ Schema discovered! ${data.schema.summary.total_tables} tables`, 'success');
+                    document.getElementById('db-status-badge').textContent = 'Connected';
+                    document.getElementById('db-status-badge').style.background = '#28a745';
+                    displaySchema(data.schema);
+                } else {
+                    showAlert('db-alert', `✗ ${data.message}`, 'error');
+                }
+            })
+            .catch(error => {
+                document.getElementById('connect-btn-icon').textContent = '⚡';
+                showAlert('db-alert', `✗ Error: ${error.message}`, 'error');
+            });
+        }
+        
+        function displaySchema(schema) {
+            const display = document.getElementById('schema-display');
+            const content = document.getElementById('schema-content');
+            
+            let html = '';
+            for (const [tableName, tableInfo] of Object.entries(schema.tables)) {
+                html += `
+                    <div class="table-node">
+                        <div class="table-header">
+                            <span class="table-name">${tableName}</span>
+                            <span class="table-badge">${tableInfo.row_count} rows</span>
+                        </div>
+                        <div class="column-grid">
+                            ${tableInfo.columns.map(col => `
+                                <div class="column-item">
+                                    ${col.primary_key ? '<span class="column-icon">🔑</span>' : ''}
+                                    ${col.foreign_key ? '<span class="column-icon">🔗</span>' : ''}
+                                    ${col.name}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            content.innerHTML = html;
+            display.style.display = 'block';
+        }
+        
+        // Query History
+        function toggleHistory() {
+            const menu = document.getElementById('history-menu');
+            const arrow = document.getElementById('history-arrow');
+            menu.classList.toggle('show');
+            arrow.textContent = menu.classList.contains('show') ? '▲' : '▼';
+        }
+        
+        function loadQueryHistory() {
+            fetch('/api/query/history')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ok && data.history.length > 0) {
+                        queryHistory = data.history;
+                        updateHistoryDropdown();
+                    }
+                });
+        }
+        
+        function updateHistoryDropdown() {
+            const menu = document.getElementById('history-menu');
+            if (queryHistory.length === 0) {
+                menu.innerHTML = '<div style="padding: 15px; text-align: center; color: #999;">No history yet</div>';
+                return;
+            }
+            
+            menu.innerHTML = queryHistory.map(item => `
+                <div class="history-item" onclick="selectHistoryQuery('${item.query.replace(/'/g, "\\'")}')">
+                    <div class="history-item-query">${item.query}</div>
+                    <div class="history-item-meta">${item.type} • ${item.time_ms}ms</div>
+                </div>
+            `).join('');
+        }
+        
+        function selectHistoryQuery(query) {
+            document.getElementById('query-input').value = query;
+            toggleHistory();
+        }
+        
+        // Query Execution
+        function runQuery() {
+            const query = document.getElementById('query-input').value;
+            if (!query) {
+                showAlert('query-alert', 'Please enter a query', 'error');
+                return;
+            }
+            
+            document.getElementById('query-btn-icon').innerHTML = '<span class="spinner"></span>';
+            document.getElementById('query-btn-text').textContent = 'Processing...';
+            showAlert('query-alert', 'Processing query...', 'info');
+            
+            const startTime = Date.now();
+            
+            fetch('/api/query', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('query-btn-icon').textContent = '🔍';
+                document.getElementById('query-btn-text').textContent = 'Run Query';
+                
+                if (data.ok) {
+                    showAlert('query-alert', `✓ Query completed successfully`, 'success');
+                    displayResults(data.result, data.time_ms, data.cached, data.cache_stats);
+                    loadQueryHistory();
+                    updateMetricsDashboard();
+                } else {
+                    showAlert('query-alert', `✗ ${data.message}`, 'error');
+                }
+            })
+            .catch(error => {
+                document.getElementById('query-btn-icon').textContent = '🔍';
+                document.getElementById('query-btn-text').textContent = 'Run Query';
+                showAlert('query-alert', `✗ Error: ${error.message}`, 'error');
+            });
+        }
+        
+        function displayResults(result, timeMs, cached, cacheStats) {
+            currentResults = result;
+            document.getElementById('results-section').style.display = 'block';
+            
+            // Performance Display
+            const perfHtml = `
+                <div class="performance-badge perf-time">⏱️ ${timeMs}ms</div>
+                <div class="performance-badge ${cached ? 'perf-cache-hit' : 'perf-cache-miss'}">
+                    ${cached ? '✓ Cache Hit' : '✗ Cache Miss'}
+                </div>
+            `;
+            document.getElementById('performance-display').innerHTML = perfHtml;
+            
+            // Results Content
+            const content = document.getElementById('results-content');
+            let html = '';
+            
+            // Database Results
+            if (result.type === 'database' && result.database_results && result.database_results.success) {
+                const data = result.database_results.data;
+                if (data.length > 0) {
+                    html += `<h3>Database Results (${data.length} rows)</h3>`;
+                    if (result.sql_generated) {
+                        html += `<p style="background: #f8f9fa; padding: 10px; border-radius: 6px; margin: 10px 0;">
+                            <strong>SQL:</strong> <code>${result.sql_generated}</code>
+                        </p>`;
+                    }
+                    html += '<table class="db-table"><thead><tr>';
+                    Object.keys(data[0]).forEach(key => {
+                        html += `<th>${key}</th>`;
+                    });
+                    html += '</tr></thead><tbody>';
+                    data.slice((currentPage-1)*pageSize, currentPage*pageSize).forEach(row => {
+                        html += '<tr>';
+                        Object.values(row).forEach(val => {
+                            html += `<td>${val !== null ? val : 'NULL'}</td>`;
+                        });
+                        html += '</tr>';
+                    });
+                    html += '</tbody></table>';
+                    
+                    if (data.length > pageSize) {
+                        setupPagination(data.length);
+                    }
+                }
+            }
+            
+            // Document Results
+            if (result.documents && result.documents.hits && result.documents.hits.length > 0) {
+                html += `<h3>Document Results (${result.documents.hits.length} matches)</h3>`;
+                result.documents.hits.forEach(hit => {
+                    const keywords = hit.matched_keywords || [];
+                    let highlightedText = hit.chunk_text;
+                    keywords.forEach(keyword => {
+                        const regex = new RegExp(`(${keyword})`, 'gi');
+                        highlightedText = highlightedText.replace(regex, '<mark>$1</mark>');
+                    });
+                    
+                    html += `
+                        <div class="document-card">
+                            <div class="doc-header">
+                                <div class="doc-title">📄 ${hit.doc_name}</div>
+                                <div class="doc-score">Score: ${(hit.score * 100).toFixed(1)}%</div>
+                            </div>
+                            <div class="doc-content">${highlightedText}</div>
+                            <div class="doc-meta">
+                                <span>Confidence: ${((hit.confidence || 0) * 100).toFixed(0)}%</span>
+                                ${keywords.length > 0 ? `<span>Matched: ${keywords.join(', ')}</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            content.innerHTML = html || '<p>No results found</p>';
+        }
+        
+        function setupPagination(totalItems) {
+            const totalPages = Math.ceil(totalItems / pageSize);
+            const paginationDiv = document.getElementById('pagination');
+            paginationDiv.style.display = 'flex';
+            
+            let html = '';
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+            }
+            paginationDiv.innerHTML = html;
+        }
+        
+        function changePage(page) {
+            currentPage = page;
+            displayResults(currentResults);
+        }
+        
+        // Export Functions
+        function exportResults(format) {
+            if (!currentResults) return;
+            
+            const data = currentResults.database_results?.data || [];
+            if (data.length === 0) {
+                alert('No data to export');
+                return;
+            }
+            
+            if (format === 'csv') {
+                exportCSV(data);
+            } else if (format === 'json') {
+                exportJSON(data);
+            }
+        }
+        
+        function exportCSV(data) {
+            const headers = Object.keys(data[0]);
+            const csv = [
+                headers.join(','),
+                ...data.map(row => headers.map(h => JSON.stringify(row[h] || '')).join(','))
+            ].join('\n');
+            
+            downloadFile(csv, 'results.csv', 'text/csv');
+        }
+        
+        function exportJSON(data) {
+            const json = JSON.stringify(data, null, 2);
+            downloadFile(json, 'results.json', 'application/json');
+        }
+        
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // Metrics Dashboard
+        function updateMetricsDashboard() {
+            fetch('/api/query/stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        document.getElementById('metric-total-queries').textContent = data.cache.total_queries || 0;
+                        document.getElementById('metric-cache-rate').textContent = data.cache.hit_rate_percent || 0;
+                        document.getElementById('metric-avg-time').textContent = calculateAvgTime(data.recent_queries);
+                        
+                        updateRecentActivity(data.recent_queries);
+                    }
+                });
+        }
+        
+        function calculateAvgTime(queries) {
+            if (!queries || queries.length === 0) return 0;
+            const sum = queries.reduce((acc, q) => acc + q.time_ms, 0);
+            return Math.round(sum / queries.length);
+        }
+        
+        function updateRecentActivity(queries) {
+            const container = document.getElementById('recent-activity');
+            if (!queries || queries.length === 0) {
+                container.innerHTML = '<div style="color: #999; text-align: center; padding: 20px;">No queries yet</div>';
+                return;
+            }
+            
+            container.innerHTML = queries.map(q => `
+                <div style="padding: 10px; border-bottom: 1px solid #f0f0f0;">
+                    <div style="font-weight: 500; margin-bottom: 5px;">${q.query}</div>
+                    <div style="font-size: 0.85em; color: #999;">
+                        ${q.type} • ${q.time_ms}ms • ${new Date(q.timestamp).toLocaleTimeString()}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Auto-update metrics every 5 seconds
+        setInterval(updateMetricsDashboard, 5000);
+    </script>
+</body>
+</html>

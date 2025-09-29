@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NLP Query Engine</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button.secondary {
+            background: #6c757d;
+        }
+        button.secondary:hover {
+            background: #545b62;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .examples {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            border-left: 4px solid #007bff;
+        }
+        .examples h4 {
+            margin: 0 0 10px 0;
+            color: #007bff;
+        }
+        .example-item {
+            margin-bottom: 8px;
+            font-family: monospace;
+            background: white;
+            padding: 8px;
+            border-radius: 3px;
+            border: 1px solid #dee2e6;
+        }
+        .schema-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .table-info {
+            background: white;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        .table-info h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .column-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .column-item {
+            padding: 5px 10px;
+            background: #e9ecef;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .results-section {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .document-result {
+            background: #f8f9fa;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #28a745;
+        }
+        .document-result h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .score {
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>NLP Query Engine (Demo)</h1>
+        <p style="color: #666; margin-bottom: 30px;">Frontend: React via CDN • Backend: Flask</p>
+
+        <!-- Database Connection Section -->
+        <div class="section">
+            <h3>Database Connector</h3>
+            <div class="status" id="connection-status"></div>
+            
+            <div class="form-group">
+                <label for="connection-string">Database Connection String:</label>
+                <input 
+                    type="text" 
+                    id="connection-string" 
+                    placeholder="Enter connection string (e.g., mysql+pymysql://root:@localhost:3306/company_db_v1)"
+                    value="mysql+pymysql://root:@localhost:3306/company_db_v1"
+                />
+            </div>
+            
+            <button onclick="testConnection()">Test Connection</button>
+            <button onclick="connectAndDiscover()" class="secondary">Connect & Discover Schema</button>
+            <button onclick="showExamples()" class="secondary">Show Examples</button>
+            
+            <!-- Connection Examples -->
+            <div class="examples" id="connection-examples" style="display: none;">
+                <h4>Connection String Examples:</h4>
+                <div class="example-item">
+                    <strong>XAMPP MySQL:</strong> mysql+pymysql://root:@localhost:3306/company_db_v1
+                </div>
+                <div class="example-item">
+                    <strong>Shorthand:</strong> localhost/company_db_v1
+                </div>
+                <div class="example-item">
+                    <strong>MySQL with password:</strong> mysql+pymysql://user:password@localhost:3306/database
+                </div>
+                <div class="example-item">
+                    <strong>SQLite:</strong> sqlite:///path/to/database.db
+                </div>
+            </div>
+            
+            <!-- Schema Display -->
+            <div id="schema-display" style="display: none;">
+                <h4>Discovered Schema:</h4>
+                <div class="schema-display" id="schema-content"></div>
+            </div>
+        </div>
+
+        <!-- Document Upload Section -->
+        <div class="section">
+            <h3>Document Uploader</h3>
+            <div class="form-group">
+                <input type="file" id="document-files" multiple accept=".pdf,.docx,.txt">
+                <button onclick="uploadDocuments()">Upload & Process</button>
+            </div>
+            <div id="upload-status"></div>
+        </div>
+
+        <!-- Query Panel -->
+        <div class="section">
+            <h3>Query Panel</h3>
+            <div class="form-group">
+                <textarea 
+                    id="query-input" 
+                    placeholder="Enter your natural language query here (e.g., 'Find resumes mentioning computer vision')"
+                    rows="3"
+                ></textarea>
+            </div>
+            <button onclick="runQuery()">Run Query</button>
+            <div class="status" id="query-status"></div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="section">
+            <h3 id="results-header" style="display: none;">Results</h3>
+            <div id="results-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // Connection Management
+        function showExamples() {
+            const examples = document.getElementById('connection-examples');
+            examples.style.display = examples.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function showStatus(elementId, message, type) {
+            const status = document.getElementById(elementId);
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 5000);
+        }
+
+        function testConnection() {
+            const connectionString = document.getElementById('connection-string').value;
+            if (!connectionString) {
+                showStatus('connection-status', 'Please enter a connection string', 'error');
+                return;
+            }
+
+            showStatus('connection-status', 'Testing connection...', 'info');
+            
+            fetch('/api/test-connection', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ connection_string: connectionString })
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.ok) {
+                    showStatus('connection-status', 
+                        `Connection successful! Found ${data.info.table_count} tables (${data.info.database_type})`, 
+                        'success'
+                    );
+                } else {
+                    showStatus('connection-status', `Connection failed: ${data.message}`, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                showStatus('connection-status', `Error: ${error.message}`, 'error');
+            });
+        }
+
+        function connectAndDiscover() {
+            const connectionString = document.getElementById('connection-string').value;
+            if (!connectionString) {
+                showStatus('connection-status', 'Please enter a connection string', 'error');
+                return;
+            }
+
+            showStatus('connection-status', 'Connecting and discovering schema...', 'info');
+            
+            fetch('/api/connect-database', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ connection_string: connectionString })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.ok) {
+                    showStatus('connection-status', 
+                        `Schema discovered! ${data.schema.summary.total_tables} tables, ${data.schema.summary.total_columns} columns`, 
+                        'success'
+                    );
+                    displaySchema(data.schema);
+                } else {
+                    showStatus('connection-status', `Schema discovery failed: ${data.message}`, 'error');
+                }
+            })
+            .catch(error => {
+                showStatus('connection-status', `Error: ${error.message}`, 'error');
+            });
+        }
+
+        function displaySchema(schema) {
+            const display = document.getElementById('schema-display');
+            const content = document.getElementById('schema-content');
+            
+            let html = `
+                <div style="margin-bottom: 15px;">
+                    <strong>Summary:</strong> ${schema.summary.total_tables} tables, 
+                    ${schema.summary.total_columns} columns, 
+                    ${schema.summary.total_relationships} relationships
+                </div>
+            `;
+            
+            for (const [tableName, tableInfo] of Object.entries(schema.tables)) {
+                html += `
+                    <div class="table-info">
+                        <h4>${tableName} (${tableInfo.purpose}) - ${tableInfo.row_count} rows</h4>
+                        <div class="column-list">
+                            ${tableInfo.columns.map(col => 
+                                `<div class="column-item">
+                                    ${col.name} (${col.type})
+                                    ${col.primary_key ? ' 🔑' : ''}
+                                    ${col.foreign_key ? ' 🔗' : ''}
+                                </div>`
+                            ).join('')}
+                        </div>
+                        ${Object.keys(tableInfo.semantic_mapping).length > 0 ? 
+                            `<div style="margin-top: 10px; font-size: 12px; color: #666;">
+                                <strong>Semantic Mapping:</strong> ${JSON.stringify(tableInfo.semantic_mapping)}
+                            </div>` : ''
+                        }
+                    </div>
+                `;
+            }
+            
+            content.innerHTML = html;
+            display.style.display = 'block';
+        }
+
+        // Document Upload
+        function uploadDocuments() {
+            const files = document.getElementById('document-files').files;
+            if (files.length === 0) {
+                alert('Please select files to upload');
+                return;
+            }
+
+            const formData = new FormData();
+            for (let file of files) {
+                formData.append('file', file);  // Changed from 'files' to 'file'
+            }
+
+            document.getElementById('upload-status').innerHTML = 'Uploading and processing documents...';
+
+            fetch('/api/upload-documents', {  // Added /api prefix
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {  // Check for 'status' not 'ok'
+                    document.getElementById('upload-status').innerHTML = 
+                        `<div class="status success">Successfully processed files: ${data.message}</div>`;
+                } else {
+                    document.getElementById('upload-status').innerHTML = 
+                        `<div class="status error">Upload failed: ${data.message}</div>`;
+                }
+            })
+            .catch(error => {
+                document.getElementById('upload-status').innerHTML = 
+                    `<div class="status error">Error: ${error.message}</div>`;
+            });
+        }
+
+        // Query Execution
+        function runQuery() {
+            const query = document.getElementById('query-input').value;
+            if (!query) {
+                showStatus('query-status', 'Please enter a query', 'error');
+                return;
+            }
+
+            showStatus('query-status', 'Processing query...', 'info');
+            
+            const startTime = Date.now();
+
+            fetch('/api/query', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Query response:', data); // Debug log
+                const processingTime = Date.now() - startTime;
+                
+                if (data.ok) {
+                    showStatus('query-status', 
+                        `Query completed in ${data.time_ms}ms (${processingTime}ms total)`, 
+                        'success'
+                    );
+                    displayResults(data.result);
+                } else {
+                    showStatus('query-status', `Query failed: ${data.message || data.error}`, 'error');
+                    console.error('Query error:', data);
+                }
+            })
+            .catch(error => {
+                showStatus('query-status', `Error: ${error.message}`, 'error');
+                console.error('Fetch error:', error);
+            });
+        }
+
+        function displayResults(result) {
+            const header = document.getElementById('results-header');
+            const content = document.getElementById('results-content');
+            
+            header.style.display = 'block';
+            
+            let html = '';
+            
+            console.log('Result:', result); // Debug log
+            
+            // Database results - check for the correct structure
+            if (result.type === 'database' && result.database_results) {
+                html += `<h4>Database Results: (${result.query_type || 'query'})</h4>`;
+                
+                if (result.sql_generated) {
+                    html += `<p><strong>Generated SQL:</strong> <code style="background: #f0f0f0; padding: 5px; border-radius: 3px;">${result.sql_generated}</code></p>`;
+                }
+                
+                const dbResults = result.database_results;
+                
+                if (dbResults.success && dbResults.data && dbResults.data.length > 0) {
+                    const data = dbResults.data;
+                    
+                    // Create table
+                    html += '<table style="width:100%; border-collapse: collapse; margin-top: 15px;">';
+                    
+                    // Table header
+                    html += '<thead><tr style="background-color: #007bff; color: white;">';
+                    Object.keys(data[0]).forEach(key => {
+                        html += `<th style="padding: 12px; border: 1px solid #dee2e6; text-align: left;">${key}</th>`;
+                    });
+                    html += '</tr></thead>';
+                    
+                    // Table body
+                    html += '<tbody>';
+                    data.forEach((row, index) => {
+                        html += `<tr style="background-color: ${index % 2 === 0 ? '#ffffff' : '#f8f9fa'};">`;
+                        Object.values(row).forEach(value => {
+                            html += `<td style="padding: 12px; border: 1px solid #dee2e6;">${value !== null ? value : 'NULL'}</td>`;
+                        });
+                        html += '</tr>';
+                    });
+                    html += '</tbody>';
+                    html += '</table>';
+                    
+                    html += `<p style="margin-top: 10px; color: #666;"><strong>Total rows:</strong> ${data.length}</p>`;
+                } else if (dbResults.error) {
+                    html += `<p style="color: red;"><strong>Error:</strong> ${dbResults.error}</p>`;
+                } else {
+                    html += '<p>No data found in database.</p>';
+                }
+            }
+            
+            // Document results
+            if (result.type === 'document' && result.documents && result.documents.hits && result.documents.hits.length > 0) {
+                html += '<h4>Document Results:</h4>';
+                result.documents.hits.forEach(hit => {
+                    html += `
+                        <div class="document-result">
+                            <h4>${hit.doc_name} <span class="score">Score: ${hit.score.toFixed(3)}</span></h4>
+                            <p>${hit.chunk_text}</p>
+                        </div>
+                    `;
+                });
+            }
+            
+            if (!html) {
+                html = '<p>No results found. Please check the query or try a different one.</p>';
+            }
+            
+            content.innerHTML = html;
+        }
+
+        // Load examples on page load
+        window.onload = function() {
+            // Set a default example query
+            document.getElementById('query-input').value = 'Find resumes mentioning computer vision';
+        };
+    </script>
+</body>
+</html>
