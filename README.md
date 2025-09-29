@@ -1,6 +1,5 @@
 # NLP-Query-Engine-for-Employee-Data
 
-# NLP-Query-Engine
 
 ## Project Overview
 
