@@ -45,6 +45,18 @@ This project is ideal for:
 
 ---
 
+## 🎬 Project Demo
+
+<div align="center">
+  <a href="https://drive.google.com/file/d/1qTE3pssaGR8LOkpC9CuVRxdd6PT2ciOj/view?usp=drive_link" target="_blank">
+    <img src="thumbnail.png" alt="Watch Flexible Emotion Detector Demo" width="640">
+  </a>
+  <br>
+  <strong><a href="https://drive.google.com/file/d/1qTE3pssaGR8LOkpC9CuVRxdd6PT2ciOj/view?usp=drive_link" target="_blank">▶️ Watch: NLP-Query-Engine-For-Data</a></strong>
+  <p>Video by Data Science Solutions</p>
+</div>
+
+---
 ## 🚀 Setup and Installation
 
 ### Prerequisites
@@ -55,8 +67,8 @@ This project is ideal for:
 ### 1. Clone the repository
 
 ```bash
-git clone <repository_url>
-cd project/backend
+git clone https://github.com/Uvais5/NLP-Query-Engine-for-Employee-Data
+cd project NLP-Query-Engine-for-Employee-Data
 ```
 ### 2.Set up a Virtual Environment and Install Dependencies
 ```bash
