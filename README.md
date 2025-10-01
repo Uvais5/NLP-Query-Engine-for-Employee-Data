@@ -32,14 +32,13 @@ This project is ideal for:
 
 ---
 
-# 💡 How to Use the NLP Query Engine
+## 💡 How to Use the NLP Query Engine
 
 Once the application is running (as detailed in the **"Running the Application"** section of the main README), you can interact with the system via the web interface served at:
 
-
 The system operates in three main phases: **Setup**, **Ingestion**, and **Querying**.
 
-
+---
 
 ### ⚙️ Phase 1: Setup and Schema Discovery (Structured Data)
 
@@ -53,6 +52,8 @@ This project requires knowing the structure of your data. You have two main opti
   - The backend connects to the database.  
   - Inspects all tables, columns, and relationships.  
   - Stores this schema information (via the `/api/schema/connect-database` endpoint) to inform future NL-to-SQL conversions.  
+
+---
 
 #### 📄 Prepare Unstructured Documents (RAG Data)
 
@@ -75,7 +76,6 @@ This process prepares your unstructured data for **semantic searching (RAG)**.
 
 3. **Monitor Status**:  
    - Use the **Ingestion Status tab** (or the `/api/ingest/status` endpoint) to ensure all documents are successfully processed and indexed before querying.  
-
 
 
 ### 🔎 Phase 3: Querying the System
