@@ -32,6 +32,90 @@ This project is ideal for:
 
 ---
 
+# 💡 How to Use the NLP Query Engine
+
+Once the application is running (as detailed in the **"Running the Application"** section of the main README), you can interact with the system via the web interface served at:
+
+
+The system operates in three main phases: **Setup**, **Ingestion**, and **Querying**.
+
+---
+
+## ⚙️ Phase 1: Setup and Schema Discovery (Structured Data)
+
+This project requires knowing the structure of your data. You have two main options for setting up your data source:
+
+### 🔗 Connect to a Database (Structured Data)
+
+- **What you need**: The SQLAlchemy connection string for your target database (e.g., PostgreSQL, MySQL).
+- **Action**: In the web interface's **Database Panel**, input your connection string and click **"Connect and Discover Schema"**.
+- **System Action**:  
+  - The backend connects to the database.  
+  - Inspects all tables, columns, and relationships.  
+  - Stores this schema information (via the `/api/schema/connect-database` endpoint) to inform future NL-to-SQL conversions.  
+
+### 📄 Prepare Unstructured Documents (RAG Data)
+
+- **What you need**: Documents containing employee-related text (policies, resumes, handbooks) in formats like **PDF, DOCX, or TXT**.
+- **Action**: In the web interface's **Data Ingestion Panel**, use the drag-and-drop area to upload your files.
+
+---
+
+## 📥 Phase 2: Document Ingestion and Indexing
+
+This process prepares your unstructured data for **semantic searching (RAG)**.
+
+1. **Upload Documents**:  
+   - Upload files via the web interface (this hits the `/api/ingest/documents` endpoint).  
+
+2. **Indexing**:  
+   The server processes the files asynchronously:  
+   - Extracts text and splits it into manageable chunks.  
+   - Generates vector embeddings for each chunk using the **Sentence-Transformer model**.  
+   - Adds these embeddings to the **FAISS vector index** for fast retrieval.  
+
+3. **Monitor Status**:  
+   - Use the **Ingestion Status tab** (or the `/api/ingest/status` endpoint) to ensure all documents are successfully processed and indexed before querying.  
+
+---
+
+## 🔎 Phase 3: Querying the System
+
+Once your data sources (structured, unstructured, or both) are set up, you can start asking questions.
+
+### 📝 Input a Query
+
+Type your question into the main query input box.  
+Examples:  
+- `"Which employees earn more than $70,000?"`  
+- `"What is the policy for remote work?"`
+
+### ⚡ Query Processing (Core Logic)
+
+The system (via the `/api/query` endpoint) automatically determines the best way to answer:
+
+- **Structured Intent (SQL)**:  
+  - For numerical data, filtering, or counting (e.g., `"Count all employees in IT"`).  
+  - It uses the discovered schema to generate and execute an SQL query.  
+
+- **Unstructured Intent (RAG)**:  
+  - For conceptual or policy-based information (e.g., `"What is the vacation entitlement for new hires?"`).  
+  - Performs a **semantic search** against the FAISS index to retrieve the most relevant document chunks.  
+
+### 📊 View Results
+
+- **Structured Results**: Displayed in a **clean, scrollable data table**.  
+- **Unstructured Results**: Displayed as **cards** showing retrieved text chunks and their source filename.  
+
+### 📈 Check Metrics
+
+Observe the **Performance Metrics panel** to view:  
+- Response time  
+- Cache hit/miss ratio  
+- Overall system optimization  
+
+
+---
 ## 🛠 Tech Stack
 
 | Category | Technology | Purpose |
