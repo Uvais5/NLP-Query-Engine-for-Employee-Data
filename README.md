@@ -7,6 +7,18 @@ This project implements a Natural Language Processing (NLP) Query Engine designe
 
 ---
 
+## 🎬 Project Demo
+
+<div align="center">
+  <a href="https://drive.google.com/file/d/1qTE3pssaGR8LOkpC9CuVRxdd6PT2ciOj/view?usp=drive_link" target="_blank">
+    <img src="thumbnail.png" alt="Watch Flexible Emotion Detector Demo" width="640">
+  </a>
+  <br>
+  <strong><a href="https://drive.google.com/file/d/1qTE3pssaGR8LOkpC9CuVRxdd6PT2ciOj/view?usp=drive_link" target="_blank">▶️ Watch: NLP-Query-Engine-For-Data</a></strong>
+  <p>Video by Data Science Solutions</p>
+</div>
+
+---
 ## 🎯 Use Case & Purpose
 
 This project is ideal for:
@@ -131,18 +143,7 @@ Observe the **Performance Metrics panel** to view:
 
 ---
 
-## 🎬 Project Demo
 
-<div align="center">
-  <a href="https://drive.google.com/file/d/1qTE3pssaGR8LOkpC9CuVRxdd6PT2ciOj/view?usp=drive_link" target="_blank">
-    <img src="thumbnail.png" alt="Watch Flexible Emotion Detector Demo" width="640">
-  </a>
-  <br>
-  <strong><a href="https://drive.google.com/file/d/1qTE3pssaGR8LOkpC9CuVRxdd6PT2ciOj/view?usp=drive_link" target="_blank">▶️ Watch: NLP-Query-Engine-For-Data</a></strong>
-  <p>Video by Data Science Solutions</p>
-</div>
-
----
 ## 🚀 Setup and Installation
 
 ### Prerequisites
