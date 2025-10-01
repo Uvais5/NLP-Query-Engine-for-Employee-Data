@@ -39,13 +39,13 @@ Once the application is running (as detailed in the **"Running the Application"*
 
 The system operates in three main phases: **Setup**, **Ingestion**, and **Querying**.
 
----
 
-## ⚙️ Phase 1: Setup and Schema Discovery (Structured Data)
+
+### ⚙️ Phase 1: Setup and Schema Discovery (Structured Data)
 
 This project requires knowing the structure of your data. You have two main options for setting up your data source:
 
-### 🔗 Connect to a Database (Structured Data)
+#### 🔗 Connect to a Database (Structured Data)
 
 - **What you need**: The SQLAlchemy connection string for your target database (e.g., PostgreSQL, MySQL).
 - **Action**: In the web interface's **Database Panel**, input your connection string and click **"Connect and Discover Schema"**.
@@ -54,14 +54,13 @@ This project requires knowing the structure of your data. You have two main opti
   - Inspects all tables, columns, and relationships.  
   - Stores this schema information (via the `/api/schema/connect-database` endpoint) to inform future NL-to-SQL conversions.  
 
-### 📄 Prepare Unstructured Documents (RAG Data)
+#### 📄 Prepare Unstructured Documents (RAG Data)
 
 - **What you need**: Documents containing employee-related text (policies, resumes, handbooks) in formats like **PDF, DOCX, or TXT**.
 - **Action**: In the web interface's **Data Ingestion Panel**, use the drag-and-drop area to upload your files.
 
----
 
-## 📥 Phase 2: Document Ingestion and Indexing
+### 📥 Phase 2: Document Ingestion and Indexing
 
 This process prepares your unstructured data for **semantic searching (RAG)**.
 
@@ -77,20 +76,20 @@ This process prepares your unstructured data for **semantic searching (RAG)**.
 3. **Monitor Status**:  
    - Use the **Ingestion Status tab** (or the `/api/ingest/status` endpoint) to ensure all documents are successfully processed and indexed before querying.  
 
----
 
-## 🔎 Phase 3: Querying the System
+
+### 🔎 Phase 3: Querying the System
 
 Once your data sources (structured, unstructured, or both) are set up, you can start asking questions.
 
-### 📝 Input a Query
+#### 📝 Input a Query
 
 Type your question into the main query input box.  
 Examples:  
 - `"Which employees earn more than $70,000?"`  
 - `"What is the policy for remote work?"`
 
-### ⚡ Query Processing (Core Logic)
+#### ⚡ Query Processing (Core Logic)
 
 The system (via the `/api/query` endpoint) automatically determines the best way to answer:
 
@@ -102,12 +101,12 @@ The system (via the `/api/query` endpoint) automatically determines the best way
   - For conceptual or policy-based information (e.g., `"What is the vacation entitlement for new hires?"`).  
   - Performs a **semantic search** against the FAISS index to retrieve the most relevant document chunks.  
 
-### 📊 View Results
+#### 📊 View Results
 
 - **Structured Results**: Displayed in a **clean, scrollable data table**.  
 - **Unstructured Results**: Displayed as **cards** showing retrieved text chunks and their source filename.  
 
-### 📈 Check Metrics
+#### 📈 Check Metrics
 
 Observe the **Performance Metrics panel** to view:  
 - Response time  
