@@ -86,8 +86,11 @@ Once your data sources (structured, unstructured, or both) are set up, you can s
 
 Type your question into the main query input box.  
 Examples:  
-- `"Which employees earn more than $70,000?"`  
+- `Which departments have the highest turnover?`
+- `Average salary by department`
 - `"What is the policy for remote work?"`
+- `Find resumes mentioning computer vision`
+
 
 #### ⚡ Query Processing (Core Logic)
 
